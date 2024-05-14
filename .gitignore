@@ -1,0 +1,13 @@
+Listings/*
+Objects/*
+
+# exclude gui config
+*.uvguix.*
+
+DebugConfig/
+Listings/
+Objects/
+RTE/
+EEET*
+Event*
+*.md
