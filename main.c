@@ -140,46 +140,43 @@ int main(void)
 	int wakeupLoop = 1;
 	while (wakeupLoop)
 	{
+		char  data[8] = {0};
 		if (GPIOA->IDR & WAKEUP_BUTTON)
 		{
 			GPIOE->BSRR = WAKEUP_LED;
 			wakeupLoop = 0;
 			// send WAKEUP LED status (on) VIA CAN
-			char  data[8];
 			data[0] = 0x01;
 			createCanMessage(0x0002BEF, data, 0x01);
 		}
 		else
 		{
 			GPIOE->BRR = WAKEUP_LED;
-		}
-		// send WAKEUP LED status (off) VIA CAN
-			char  data[8];
-			data[0] = 0x01;
+			// send WAKEUP LED status (off) VIA CAN
+			data[0] = 0x00;
 			createCanMessage(0x0002BEF, data, 0x01);
-		//TODO set array as empty
+		}
 	}
 
 	int userLoop = 1;
 	while (userLoop)
 	{
+		char  data[8] = {0};
 		if (GPIOB->IDR & USER_BUTTON)
 		{
 			GPIOE->BRR = USER_LED;
 			// send USER LED status (on) VIA CAN
-			char  data[8];
-			data[0] = 0x01;
+			data[0] = 0x00;
 			createCanMessage(0x01AEFCA, data, 0x01);
 		}
 		else
 		{
 			GPIOE->BSRR = USER_LED;
 			userLoop = 0;
-		}
-		// send USER LED status (off) VIA CAN
-			char  data[8];
-			data[0] = 0x00;
+			// send USER LED status (off) VIA CAN
+			data[0] = 0x01;
 			createCanMessage(0x01AEFCA, data, 0x01);
+		}
 	}
 	CAN_waitReady();
 	timerSetup();
@@ -188,7 +185,7 @@ int main(void)
 		if (TIM2->SR & TIM_SR_UIF) {
 			// send ADC values VIA CAN
 			unsigned int adc = ADC1->DR;
-			char  data[8];
+			char  data[8] = {0};
 			data[0] = (char)(adc & 0xFF); // Lower byte
 			data[1] = (char)((adc >> 8) & 0xFF);
 			data[2] = (char)((adc >> 16) & 0xFF);
@@ -196,13 +193,14 @@ int main(void)
 			createCanMessage(0xBADCAFE, data, 0x04);
 
 			// receive CAN values
-			while(!CAN_RxRdy){
-					check_message();
+			check_message();
+			if(CAN_RxRdy){
+				// set LED9 based on CAN values
+				// set LED8 based on CAN values
+				turn_On_LED(&CAN_RxMsg);
+				turn_On_LED(&CAN_RxMsg2);
+				
 			}
-			// set LED9 based on CAN values
-			// set LED8 based on CAN values
-			turn_On_LED(&CAN_RxMsg);
-			turn_On_LED(&CAN_RxMsg2);
 			// clear flag
 			TIM2->SR &= ~TIM_SR_UIF;
 		}
